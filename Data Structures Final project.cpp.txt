@@ -1,0 +1,738 @@
+#include<iostream>
+#include<fstream>
+using namespace std;
+class Room_node
+{
+public:
+	int Room_iD;
+	char type;
+	int price;
+	int status;
+	string features;
+	Room_node* pnext;
+};
+
+class Guest_node
+{
+public:
+	int iD;
+	string name;
+	string password;
+	Guest_node* pnext;
+};
+
+class Booking_node
+{
+public:
+	int Booking_id;
+	int guest_iD;
+	int Room_id;
+	int check_Day;
+	int check_month;
+	int check_out_Day;
+	int check_out_month;
+	int Total_cost;
+	Booking_node* pnext;
+};
+
+class Admin_node
+{
+public:
+	int iD;
+	string name;
+	string password;
+	Admin_node* pnext;
+};
+
+class Room_list
+{
+	Room_node* phead;
+	Room_node* ptail;
+public:
+	Room_list()
+	{
+		phead = NULL;
+		ptail = NULL;
+	}
+	void attach(Room_node* pnn)
+	{
+		if (phead == NULL)
+		{
+			phead = pnn;
+			ptail = pnn;
+		}
+		else
+		{
+			ptail->pnext = pnn;
+			ptail = pnn;
+		}
+		ofstream out;
+		out.open("Room.txt", ios::app);
+		out << pnn->Room_iD << "    " << pnn->type << "   " << pnn->price << "   " << pnn->status << "   " << pnn->features << endl;
+		out.close();
+	}
+	void Display()
+	{
+		Room_node temp;
+		ifstream in;
+		in.open("Room.txt");
+		while (!in.eof())
+		{
+			in >> temp.Room_iD >> temp.type >> temp.price >> temp.status >> temp.features;
+			if (in.eof())
+			{
+				break;
+			}
+			cout << temp.Room_iD << "  " << temp.type << "  " << temp.price << "  " << temp.status << "  " << temp.features << endl;
+		}
+		in.close();
+	}
+	int search_Room(char type, int price1, int price2)
+	{
+		Room_node temp;
+		ifstream in;
+		in.open("Room.txt");
+		while (!in.eof())
+		{
+			in >> temp.Room_iD >> temp.type >> temp.price >> temp.status >> temp.features;
+			if (temp.type == type && temp.price >= price1 && temp.price <= price2 && temp.status == 1)
+			{
+				in.close();
+				return 1;
+			}
+			cout << temp.Room_iD << "  " << temp.type << "  " << temp.price << "  " << temp.status << "  " << temp.features << endl;
+		}
+		in.close();
+		return 0;
+	}
+	int Occupancy_rate()
+	{
+		int ct = 0;
+		Room_node temp;
+		ifstream in;
+		in.open("Room.txt");
+		while (!in.eof())
+		{
+			in >> temp.Room_iD >> temp.type >> temp.price >> temp.status >> temp.features;
+			if (in.eof())
+			{
+				break;
+			}
+			if (temp.status == 1)
+			{
+				ct++;
+			}
+		}
+		in.close();
+		return ct;
+	}
+	void Save_One_Room_To_File(Room_node* pnn)
+	{
+		ofstream write;
+		write.open("Room.txt", ios::app);
+		write << pnn->Room_iD << "   " << pnn->type << "   " << pnn->price << "   " << pnn->status << "   " << pnn->features << endl;
+		write.close();
+
+	}
+	void delete_Room(int iD)
+	{
+		Room_node* pnn;
+		phead = NULL;
+		ptail = NULL;
+		ifstream in;
+		in.open("Room.txt");
+		while (!in.eof())
+		{
+			pnn = new Room_node;
+			in >> pnn->Room_iD >> pnn->type >> pnn->price >> pnn->status >> pnn->features;
+			if (pnn->Room_iD != iD)
+			{
+				attach(pnn);
+			}
+		}
+		in.close();
+		ofstream out;
+		out.open("Room.txt");
+		Room_node* ptrav = phead;
+		while (ptrav != NULL)
+		{
+			out << ptrav->Room_iD << "  " << ptrav->type << ptrav->price << "  " << ptrav->status << "  " << ptrav->features << endl;
+			ptrav = ptrav->pnext;
+		}
+		out.close();
+	}
+	float get_price(int room_id)
+	{
+		ifstream readfile;
+		Room_node* pnn;
+		readfile.open("Room.txt");
+		while (!readfile.eof()) {
+			pnn = new Room_node;
+			readfile >> pnn->Room_iD >> pnn->type >> pnn->price >> pnn->status >> pnn->features;
+			if (pnn->Room_iD == room_id) {
+				readfile.close();
+				return pnn->price;
+			}
+		}
+		readfile.close();
+		return 0.0;
+	}
+	bool is_Available(int room_id)
+	{
+		ifstream readfile;
+		Room_node* pnn;
+		readfile.open("Room.txt");
+		while (!readfile.eof()) {
+			pnn = new Room_node;
+			readfile >> pnn->Room_iD >> pnn->type >> pnn->price >> pnn->status >> pnn->features;
+			if (pnn->Room_iD == room_id && pnn->status == 0) {
+				readfile.close();
+				return true;
+			}
+		}
+		readfile.close();
+		return false;
+	}
+	void Change_status_to_Unavailable(int room_id)
+	{
+		ifstream readfile;
+		Room_node* pnn;
+		readfile.open("Room.txt");
+		while (!readfile.eof()) {
+			pnn = new Room_node;
+			readfile >> pnn->Room_iD >> pnn->type >> pnn->price >> pnn->status >> pnn->features;
+			if (readfile.eof())
+				break;
+			if (pnn->Room_iD == room_id) {
+				pnn->status = 1;
+			}
+			attach(pnn);
+		}
+		readfile.close();
+
+		ofstream write;
+		write.open("Room.txt");
+		Room_node* ptrav = phead;
+		while (ptrav != NULL) {
+			write << ptrav->Room_iD << "    " << ptrav->type << "    " << ptrav->price << "    " << ptrav->status << "    " << ptrav->features << endl;
+			ptrav = ptrav->pnext;
+		}
+		write.close();
+	}
+	void Change_status_to_available(int room_id)
+	{
+		ifstream readfile;
+		Room_node* pnn;
+		readfile.open("Room.txt");
+		while (!readfile.eof()) {
+			pnn = new Room_node;
+			readfile >> pnn->Room_iD >> pnn->type >> pnn->price >> pnn->status >> pnn->features;
+			if (readfile.eof())
+				break;
+			if (pnn->Room_iD == room_id) {
+				pnn->status = 0;
+			}
+			attach(pnn);
+		}
+		readfile.close();
+
+		ofstream write;
+		write.open("Room.txt");
+		Room_node* ptrav = phead;
+		while (ptrav != NULL) {
+			write << ptrav->Room_iD << "    " << ptrav->type << "    " << ptrav->price << "    " << ptrav->status << "    " << ptrav->features << endl;
+			ptrav = ptrav->pnext;
+		}
+		write.close();
+	}
+	void update(int iD, int price, int status, string features)
+	{
+		Room_node* pnn;
+		phead = NULL;
+		ptail = NULL;
+		ifstream in;
+		in.open("Room.txt");
+		while (!in.eof())
+		{
+			pnn = new Room_node;
+			in >> pnn->Room_iD >> pnn->type >> pnn->price >> pnn->status >> pnn->features;
+			if (pnn->Room_iD == iD)
+			{
+				pnn->price = price;
+				pnn->status = status;
+				pnn->features = features;
+			}
+			attach(pnn);
+		}
+		in.close();
+		ofstream out;
+		out.open("Room.txt");
+		Room_node* ptrav = phead;
+		while (ptrav != NULL)
+		{
+			out << ptrav->Room_iD << "  " << ptrav->type << ptrav->price << "  " << ptrav->status << "  " << ptrav->features << endl;
+			ptrav = ptrav->pnext;
+		}
+		out.close();
+	}
+};
+
+class Admin
+{
+	Admin_node* phead;
+	Admin_node* ptail;
+public:
+	Admin()
+	{
+		phead = NULL;
+		ptail = NULL;
+	}
+	void sign_up(Admin_node* pnn)
+	{
+		if (phead == NULL)
+		{
+			phead = pnn;
+			ptail = pnn;
+		}
+		else {
+			ptail->pnext = pnn;
+			ptail = pnn;
+		}
+		ofstream out;
+		out.open("Admin.txt", ios::app);
+		out << pnn->iD << "  " << pnn->name << "  " << pnn->password << endl;
+		out.close();
+	}
+	int login(string username, string password)
+	{
+		Admin_node temp;
+		ifstream in;
+		in.open("Admin.txt");
+		while (!in.eof())
+		{
+			in >> temp.iD >> temp.name >> temp.password;
+			if (temp.name == username && temp.password == password)
+			{
+				in.close();
+				return 1;
+			}
+		}
+		in.close();
+		return 0;
+	}
+};
+
+class Booking_list
+{
+	Booking_node* phead;
+	Booking_node* ptail;
+public:
+	Booking_list()
+	{
+		phead = NULL;
+		ptail = NULL;
+	}
+	void Book_Room(Booking_node* pnn)
+	{
+		ofstream out;
+		if (phead = NULL)
+		{
+			phead = NULL;
+			ptail = NULL;
+		}
+		else
+		{
+			pnn->pnext = NULL;
+			ptail->pnext = pnn;
+			ptail = pnn;
+		}
+		out.open("Booking.txt", ios::app);
+		out << pnn->Booking_id << "  " << pnn->guest_iD << "  " << pnn->check_Day << "  " << pnn->check_out_month << "  " << pnn->Total_cost << "  " << pnn->check_out_Day << "  " << pnn->check_month << "  " << pnn->Room_id << endl;
+		out.close();
+	}
+	void attach_booking(Booking_node* pnn) {
+		if (phead == NULL) {
+			phead = pnn;
+			ptail = pnn;
+		}
+		else {
+			pnn->pnext = NULL;
+			ptail->pnext = pnn;
+			ptail = pnn;
+		}
+	}
+	void save_one_Booking_To_File(Booking_node* pnn)
+	{
+		ofstream out;
+		out.open("Booking.txt", ios::app);
+		out << pnn->Booking_id << "   " << pnn->guest_iD << "   " << pnn->Room_id << "    " << pnn->check_Day << "   " << pnn->check_month << "   " << pnn->check_out_Day << "   " << pnn->check_out_month << "   " << pnn->Total_cost << endl;
+		out.close();
+	}
+	void booking_Room(Booking_node* pnn)
+	{
+		Room_list room;
+		if (room.is_Available(pnn->Room_id) == true)
+		{
+			float tot = (pnn->check_out_Day - pnn->check_Day) * room.get_price(pnn->Room_id);
+			tot += (tot * 0.14f);
+			pnn->Total_cost = tot;
+			save_one_Booking_To_File(pnn);
+			room.Change_status_to_Unavailable(pnn->Room_id);
+		}
+		else
+		{
+			cout << "THis Room Not Available Now, Sorry!" << endl;
+		}
+	}
+	void Cancel_Booking(int Guest_ID, int room_id, int Today)
+	{
+		ifstream in;
+		Booking_node* pnn;
+		Room_list r;
+		phead = NULL;
+		ptail = NULL;
+		in.open("Booking.txt");
+		while (!in.eof())
+		{
+			pnn = new Booking_node;
+			in >> pnn->Booking_id >> pnn->guest_iD >> pnn->Room_id >> pnn->check_Day >> pnn->check_month >> pnn->check_out_Day >> pnn->check_out_month >> pnn->Total_cost;
+			if (in.eof())
+				break;
+			if (pnn->guest_iD == Guest_ID && pnn->Room_id == room_id && Today < pnn->check_Day)
+			{
+				r.Change_status_to_available(pnn->Room_id);
+			}
+			else
+			{
+				attach_booking(pnn);
+			}
+		}
+		in.close();
+		ofstream write;
+		write.open("Booking.txt");
+		pnn = phead;
+		while (pnn != NULL)
+		{
+			write << pnn->Booking_id << "   " << pnn->guest_iD << "   " << pnn->Room_id << "    " << pnn->check_Day << "   " << pnn->check_month << "   " << pnn->check_out_Day << "   " << pnn->check_out_month << "   " << pnn->Total_cost << endl;
+			pnn = pnn->pnext;
+		}
+		write.close();
+	}
+	void View_Booking_History_For_Specific_Guest(int guest_id)
+	{
+		ifstream in;
+		Booking_node* pnn;
+		in.open("Booking.txt");
+		while (!in.eof())
+		{
+			pnn = new Booking_node;
+			in >> pnn->Booking_id >> pnn->guest_iD >> pnn->Room_id >> pnn->check_Day >> pnn->check_month >> pnn->check_out_Day >> pnn->check_out_month >> pnn->Total_cost;
+			if (in.eof())
+				break;
+			if (pnn->guest_iD == guest_id)
+			{
+				cout << pnn->Booking_id << "   " << pnn->guest_iD << "   " << pnn->Room_id << "    " << pnn->check_Day << "   " << pnn->check_month << "   " << pnn->check_out_Day << "   " << pnn->check_out_month << "   " << pnn->Total_cost << endl;
+
+			}
+		}
+		in.close();
+	}
+	void View_All_Booking()
+	{
+		ifstream in;
+		Booking_node* pnn;
+		in.open("Booking.txt");
+		while (!in.eof())
+		{
+			pnn = new Booking_node;
+			in >> pnn->Booking_id >> pnn->guest_iD >> pnn->Room_id >> pnn->check_Day >> pnn->check_month >> pnn->check_out_Day >> pnn->check_out_month >> pnn->Total_cost;
+			if (in.eof())
+				break;
+			cout << pnn->Booking_id << "   " << pnn->guest_iD << "   " << pnn->Room_id << "    " << pnn->check_Day << "   " << pnn->check_month << "   " << pnn->check_out_Day << "   " << pnn->check_out_month << "   " << pnn->Total_cost << endl;
+		}
+		in.close();
+	}
+	float Daily_Income_Report(int Day)
+	{
+		ifstream in;
+		Booking_node* pnn;
+		float tot = 0.0;
+		in.open("Booking.txt");
+		while (!in.eof())
+		{
+			pnn = new Booking_node;
+			in >> pnn->Booking_id >> pnn->guest_iD >> pnn->Room_id >> pnn->check_Day >> pnn->check_month >> pnn->check_out_Day >> pnn->check_out_month >> pnn->Total_cost;
+			if (in.eof())
+				break;
+			if (pnn->check_Day == Day)
+			{
+				tot += pnn->Total_cost;
+			}
+		}
+		in.close();
+		return tot;
+	}
+	float Monthly_Income_Report(int Month)
+	{
+		ifstream in;
+		Booking_node* pnn;
+		float tot = 0.0;
+		in.open("Booking.txt");
+		while (!in.eof())
+		{
+			pnn = new Booking_node;
+			in >> pnn->Booking_id >> pnn->guest_iD >> pnn->Room_id >> pnn->check_Day >> pnn->check_month >> pnn->check_out_Day >> pnn->check_out_month >> pnn->Total_cost;
+			if (in.eof())
+				break;
+			if (pnn->check_month == Month)
+			{
+				tot += pnn->Total_cost;
+			}
+		}
+		in.close();
+		return tot;
+	}
+};
+
+class Guest_list
+{
+	Guest_node* phead;
+	Guest_node* ptail;
+public:
+	Guest_list()
+	{
+		phead = NULL;
+		ptail = NULL;
+	}
+	void sign_up(Guest_node* pnn)
+	{
+		if (phead == NULL)
+		{
+			phead = pnn;
+			ptail = pnn;
+		}
+		else {
+			ptail->pnext = pnn;
+			ptail = pnn;
+		}
+		ofstream out;
+		out.open("Guest.txt", ios::app);
+		out << pnn->iD << "  " << pnn->name << "  " << pnn->password << endl;
+		out.close();
+	}
+	int login(string username, string password)
+	{
+		Guest_node temp;
+		ifstream in;
+		in.open("Guest.txt");
+		while (!in.eof())
+		{
+			in >> temp.iD >> temp.name >> temp.password;
+			if (temp.name == username && temp.password == password)
+			{
+				in.close();
+				return 1;
+			}
+		}
+		in.close();
+		return 0;
+	}
+};
+
+void main()
+{
+	Admin_node* pnn_admin;
+	Guest_node* pnn_guest;
+	Room_node* pnn_room;
+	Booking_node* pnn_booking;
+	Admin a;
+	Room_list r;
+	Guest_list g;
+	Booking_list b;
+	int choice = 1;
+	int day;
+	while (choice > 0)
+	{
+		cout << "# 1- Admin" << endl;
+		cout << "# 2- Guest" << endl;
+		cout << "who are you ? " << endl;
+		cin >> choice;
+		if (choice == 1)
+		{
+			cout << "enter username and password  ";
+			pnn_admin = new Admin_node;
+			cin >> pnn_admin->name;
+			cin >> pnn_admin->password;
+			if (a.login(pnn_admin->name, pnn_admin->password) == 1)
+			{
+
+				cout << "1.insert new room" << endl;
+				cout << "2.display all rooms" << endl;
+				cout << "3.Delete specific room" << endl;
+				cout << "4.Update specific room" << endl;
+				cout << "5.View All Booking" << endl;
+				cout << "6.How Many Rooms Not Available ? " << endl;
+				cout << "7.Daily Income Report" << endl;
+				cout << "8.Monthly Income Report" << endl;
+				cout << "Choose which operation : ";
+				cin >> choice;
+				if (choice == 1) {
+					pnn_room = new Room_node;
+					cout << "room id" << endl;
+					cin >> pnn_room->Room_iD;
+					cout << "enter room type" << endl;
+					cin >> pnn_room->type;
+					cout << "enter room features" << endl;
+					cin >> pnn_room->features;
+					cout << "enter room price" << endl;
+					cin >> pnn_room->price;
+					cout << "Enter room status ";
+					cin >> pnn_room->status;
+					r.Save_One_Room_To_File(pnn_room);
+				}
+				else if (choice == 2) {
+					r.Display();
+				}
+				else if (choice == 3)
+				{
+					pnn_room = new Room_node;
+					cout << "room id" << endl;
+					cin >> pnn_room->Room_iD;
+					r.delete_Room(pnn_room->Room_iD);
+				}
+				else if (choice == 4)
+				{
+					pnn_room = new Room_node;
+					cout << "room id" << endl;
+					cin >> pnn_room->Room_iD;
+					cout << "enter room features" << endl;
+					cin >> pnn_room->features;
+					cout << "enter room price" << endl;
+					cin >> pnn_room->price;
+					cout << "Enter room status ";
+					cin >> pnn_room->status;
+					r.update(pnn_room->Room_iD, pnn_room->price, pnn_room->status, pnn_room->features);
+				}
+				else if (choice == 5)
+				{
+					b.View_All_Booking();
+				}
+				else if (choice == 6)
+				{
+					cout << "Rooms Not Available = " << r.Occupancy_rate() << endl;
+				}
+				else if (choice == 7)
+				{
+
+					cout << "Enter Day : ";
+					cin >> day;
+					b.Daily_Income_Report(day);
+				}
+				else if (choice == 8)
+				{
+					int month;
+					cout << "Enter Month : ";
+					cin >> month;
+					b.Monthly_Income_Report(month);
+				}
+
+			}
+			else
+			{
+				cout << "username or password incorrect!" << endl;
+			}
+		}
+		else {
+			cout << "1-Login" << endl;
+			cout << "2-signup" << endl;
+			cout << "pick operation ";
+			cin >> choice;
+			if (choice == 1)
+			{
+				pnn_guest = new Guest_node;
+				cout << "enter name" << endl;
+				cin >> pnn_guest->name;
+				cout << "enter passsord" << endl;
+				cin >> pnn_guest->password;
+				if (g.login(pnn_guest->name, pnn_guest->password) == true)
+				{
+					cout << "1- Filter Rooms By Type, price , status" << endl;
+					cout << "2- Book Room" << endl;
+					cout << "3- Cancel Booking" << endl;
+					cout << "4- View My Booking History" << endl;
+					cout << "Choose which operation ";
+					cin >> choice;
+					if (choice == 1)
+					{
+						pnn_room = new Room_node;
+						int price1, price2;
+						cout << "enter room type" << endl;
+						cin >> pnn_room->type;
+						cout << "enter room features" << endl;
+						cin >> pnn_room->features;
+						cout << "enter First price " << endl;
+						cin >> price1;
+						cout << "enter second price " << endl;
+						cin >> price2;
+						cout << "Enter room status ";
+						cin >> pnn_room->status;
+						r.search_Room(pnn_room->type, price1, price2);
+					}
+					else if (choice == 2)
+					{
+						pnn_booking = new Booking_node;
+						cout << "Enter Booking Id ";
+						cin >> pnn_booking->Booking_id;
+						cout << "Enter Guest Id ";
+						cin >> pnn_booking->guest_iD;
+						cout << "Enter Room Id ";
+						cin >> pnn_booking->Room_id;
+						cout << "Enter Check-in Day ";
+						cin >> pnn_booking->check_Day;
+						cout << "Enter Check-out Day ";
+						cin >> pnn_booking->check_out_Day;
+						cout << "Enter Check-in Month ";
+						cin >> pnn_booking->check_month;
+						cout << "Enter Check-out Month ";
+						cin >> pnn_booking->check_out_month;
+						b.booking_Room(pnn_booking);
+					}
+					else if (choice == 3)
+					{
+						pnn_booking = new Booking_node;
+						cout << "Enter Guest Id ";
+						cin >> pnn_booking->guest_iD;
+						cout << "Enter Room Id ";
+						cin >> pnn_booking->Room_id;
+						cout << "Enter Canceling Day ";
+						cin >> day;
+						b.Cancel_Booking(pnn_booking->guest_iD, pnn_booking->Room_id, day);
+					}
+					else if (choice == 4)
+					{
+						pnn_booking = new Booking_node;
+						cout << "Enter Guest Id ";
+						cin >> pnn_booking->guest_iD;
+						b.View_Booking_History_For_Specific_Guest(pnn_booking->guest_iD);
+					}
+
+				}
+			}
+			else
+			{
+				pnn_guest = new Guest_node;
+				cout << "enter id" << endl;
+				cin >> pnn_guest->iD;
+				cout << "enter name" << endl;
+				cin >> pnn_guest->name;
+				cout << "enter passsord" << endl;
+				cin >> pnn_guest->password;
+				g.sign_up(pnn_guest);
+			}
+
+		}
+		cout << "do you want to do more operations ?" << endl;
+		cin >> choice;
+
+	}
+}
